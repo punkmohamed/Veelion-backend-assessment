@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 
 const tasksRouter = require('./modules/tasks/routes/tasks.routes');
 const activityRouter = require('./modules/activity/routes/activity.routes');
@@ -7,6 +8,7 @@ const HttpError = require('./utils/httpError');
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 app.use('/tasks', tasksRouter);
