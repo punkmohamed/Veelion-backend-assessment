@@ -1,6 +1,7 @@
 const HttpError = require('../../../utils/httpError');
 
-const ALLOWED_FIELDS = ['title', 'completed'];
+const ALLOWED_FIELDS = ['title', 'completed', 'status'];
+const ALLOWED_STATUS = ['todo', 'in-progress', 'inprogress', 'done'];
 
 function validatePayloadShape(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
@@ -49,6 +50,23 @@ function normalizeCompletedIfPresent(payload, normalized) {
   normalized.completed = payload.completed;
 }
 
+function normalizeStatusIfPresent(payload, normalized) {
+  if (!Object.hasOwn(payload, 'status')) {
+    return;
+  }
+
+  if (typeof payload.status !== 'string') {
+    throw new HttpError(400, '"status" must be a string.');
+  }
+
+  const val = payload.status.trim().toLowerCase();
+  if (!ALLOWED_STATUS.includes(val)) {
+    throw new HttpError(400, '"status" must be one of: todo, in-progress, done.');
+  }
+
+  normalized.status = val === 'inprogress' ? 'in-progress' : val;
+}
+
 function validateCreateTask(payload) {
   validatePayloadShape(payload);
   ensureNoUnknownFields(payload);
@@ -56,6 +74,7 @@ function validateCreateTask(payload) {
   const normalized = {};
   normalizeTitleIfPresent(payload, normalized);
   normalizeCompletedIfPresent(payload, normalized);
+  normalizeStatusIfPresent(payload, normalized);
 
   if (!Object.hasOwn(normalized, 'title')) {
     throw new HttpError(400, '"title" is required.');
@@ -63,6 +82,13 @@ function validateCreateTask(payload) {
 
   if (!Object.hasOwn(normalized, 'completed')) {
     normalized.completed = false;
+  }
+
+  if (!Object.hasOwn(normalized, 'status')) {
+    normalized.status = normalized.completed ? 'done' : 'todo';
+  } else {
+    if (normalized.status === 'done') normalized.completed = true;
+    else normalized.completed = false;
   }
 
   return normalized;
@@ -75,9 +101,18 @@ function validateUpdateTask(payload) {
   const normalized = {};
   normalizeTitleIfPresent(payload, normalized);
   normalizeCompletedIfPresent(payload, normalized);
+  normalizeStatusIfPresent(payload, normalized);
 
   if (Object.keys(normalized).length === 0) {
     throw new HttpError(400, 'Provide at least one updatable field.');
+  }
+
+  if (Object.hasOwn(normalized, 'status') && !Object.hasOwn(normalized, 'completed')) {
+    normalized.completed = normalized.status === 'done';
+  }
+
+  if (Object.hasOwn(normalized, 'completed') && !Object.hasOwn(normalized, 'status')) {
+    normalized.status = normalized.completed ? 'done' : 'todo';
   }
 
   return normalized;

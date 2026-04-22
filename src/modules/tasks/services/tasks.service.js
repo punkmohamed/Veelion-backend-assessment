@@ -14,13 +14,18 @@ function buildTaskRecord(payload) {
     id: createId(),
     title: payload.title,
     completed: payload.completed,
+    status: payload.status,
     createdAt: now,
     updatedAt: now,
   };
 }
 
 async function getAllTasks() {
-  return readJsonArray(TASKS_FILE_PATH);
+  const tasks = await readJsonArray(TASKS_FILE_PATH);
+  if(!tasks) {
+    throw new HttpError(404, 'No tasks found.');
+  }
+  return tasks;
 }
 
 async function getTaskById(taskId) {
@@ -36,6 +41,11 @@ async function getTaskById(taskId) {
 
 async function createTask(payload) {
   const validated = validateCreateTask(payload);
+
+  if (!validated.status) {
+    validated.status = 'todo';
+    validated.completed = false;
+  }
 
   const tasks = await readJsonArray(TASKS_FILE_PATH);
   const newTask = buildTaskRecord(validated);
