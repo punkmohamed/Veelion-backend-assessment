@@ -8,8 +8,11 @@ const ACTIVITY_FILE_PATH = path.join(process.cwd(), 'data', 'activity.json');
 
 
 async function getTasksSummary({ recentDays = 30 } = {}) {
-  const tasks = await readJsonArray(TASKS_FILE_PATH);
-  const activities = await readJsonArray(ACTIVITY_FILE_PATH);
+  const [tasks, activities] = await Promise.all([
+    readJsonArray(TASKS_FILE_PATH),
+    readJsonArray(ACTIVITY_FILE_PATH),
+  ]);
+
 
   if (!Array.isArray(tasks)) {
     throw new HttpError(500, 'Failed to load tasks data.');
