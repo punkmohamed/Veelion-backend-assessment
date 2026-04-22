@@ -152,3 +152,13 @@ This document contains a comprehensive code review of the Task Management System
    **What is wrong**: GET /tasks and GET /activity endpoints don't support pagination, searching, filtering by date/action, or sorting.  
    **Why it is a problem**: Inefficient for large datasets, no way to search or filter tasks/activities, poor scalability and user experience.  
    **How to improve it**: Add query parameters like ?page=1&limit=10&search=keyword&action=created&sort=when&order=desc for both endpoints, and implement logic in services/controllers.
+
+8. **Missing CRUD Endpoints in Activity Module**  
+   **What is wrong**: The activity module only implements GET (list all) and POST (create) endpoints. Missing are PATCH (update by ID) and DELETE (delete by ID) operations.  
+   **Why it is a problem**: Users cannot update or delete existing activities; incomplete CRUD functionality limits the module's usability.  
+   **How to improve it**: Add `PATCH /:id` endpoint to update activity fields and `DELETE /:id` endpoint to remove activities by ID.
+
+9. **Inconsistent Naming Convention in Activity Routes**  
+   **What is wrong**: The activity routes file uses inconsistent naming conventions—some controller methods use snake_case (`get_activity`) while others use camelCase (`addActivity`).  
+   **Why it is a problem**: Inconsistent naming reduces code readability and makes the codebase harder to maintain. It violates convention consistency across the project.  
+   **How to improve it**: Standardize all method names to camelCase (e.g., rename `get_activity` to `getActivity`) to match the rest of the codebase and improve consistency.
