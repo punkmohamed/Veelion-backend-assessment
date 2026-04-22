@@ -1,51 +1,43 @@
-const fs = require('node:fs');
+const { readJsonArray, writeJsonArray } = require('../../../utils/jsonStore');
+const { createId } = require('../../../utils/id');
+const HttpError = require('../../../utils/httpError');
 const path = require('node:path');
+const { validateCreateActivity } = require('../utils/activityValidator');
 
-const fp = path.join(process.cwd(), 'data', 'activity.json');
+const filePath = path.join(process.cwd(), 'data', 'activity.json');
 
-function loadDataA() {
-  if (!fs.existsSync(fp)) {
-    fs.writeFileSync(fp, '[]');
+async function loadActivityData() {
+  const data = await readJsonArray(filePath);
+
+  if (!Array.isArray(data)) {
+    throw new HttpError(500, 'Activity data must be an array');
   }
 
-  let raw = fs.readFileSync(fp, 'utf8');
-  if (!raw) {
-    raw = '[]';
-  }
-
-  return JSON.parse(raw);
+  return data;
 }
 
-function loadDataB() {
-  if (!fs.existsSync(fp)) {
-    fs.writeFileSync(fp, '[]');
+async function getAllActivity() {
+  const arr = await loadActivityData();
+  if (!arr) {
+    throw new HttpError(500, 'Failed to load activity data');
   }
-
-  let raw = fs.readFileSync(fp, 'utf8');
-  if (!raw) {
-    raw = '[]';
-  }
-
-  return JSON.parse(raw);
-}
-
-function getAllActivity() {
-  const arr = loadDataA();
   return arr;
 }
 
-function createNewActivity(b) {
-  const list = loadDataB();
-  const one = {
-    id: String(Date.now()),
-    action: b.action,
-    info: b.info,
+async function createNewActivity(bodyData) {
+  const normalized = validateCreateActivity(bodyData);
+
+  const list = await loadActivityData();
+  const newActivity = {
+    id: createId(),
+    action: normalized.action,
+    info: normalized.info,
     when: new Date().toISOString(),
   };
 
-  list.push(one);
-  fs.writeFileSync(fp, JSON.stringify(list, null, 2));
-  return one;
+  list.push(newActivity);
+  await writeJsonArray(filePath, list);
+  return newActivity;
 }
 
 module.exports = {
