@@ -34,7 +34,7 @@ function normalizeActionIfPresent(payload, normalized) {
     throw new HttpError(400, '"action" cannot be empty.');
   }
 
-  if (trimmedAction.length 3) {
+  if (trimmedAction.length < 3) {
     throw new HttpError(400, '"action" must be at least 3 characters long.');
   }
 
@@ -55,7 +55,7 @@ function normalizeInfoIfPresent(payload, normalized) {
     throw new HttpError(400, '"info" cannot be empty.');
   }
 
-  if (trimmedInfo.length 3) {
+  if (trimmedInfo.length < 3) {
     throw new HttpError(400, '"info" must be at least 3 characters long.');
   }
 
